@@ -1,12 +1,12 @@
 import "./css/message.css"
 import {
     DesktopOutlined,
-    FileOutlined,
+    FileOutlined, MenuFoldOutlined, MenuUnfoldOutlined,
     PieChartOutlined,
     TeamOutlined,
     UserOutlined,
 } from '@ant-design/icons';
-import { Breadcrumb, Layout, Menu } from 'antd';
+import {Breadcrumb, Button, Input, Layout, Menu, Space, Typography} from 'antd';
 import React, { useState } from 'react';
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -20,15 +20,11 @@ function getItem(label, key, icon, children) {
 }
 
 const items = [
-    getItem('Option 1', '1', <PieChartOutlined />),
-    getItem('Option 2', '2', <DesktopOutlined />),
-    getItem('User', 'sub1', <UserOutlined />, [
+    getItem('Friends', 'sub1', <UserOutlined />, [
         getItem('Tom', '3'),
         getItem('Bill', '4'),
         getItem('Alex', '5'),
     ]),
-    getItem('Team', 'sub2', <TeamOutlined />, [getItem('Team 1', '6'), getItem('Team 2', '8')]),
-    getItem('Files', '9', <FileOutlined />),
 ];
 
 function Message(){
@@ -40,7 +36,7 @@ function Message(){
             }}
         >
             <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
-                <div className="logo" />
+                <div className="logo">Mesence</div>
                 <Menu theme="dark" defaultSelectedKeys={['1']} mode="inline" items={items} />
             </Sider>
             <Layout className="site-layout">
@@ -48,30 +44,33 @@ function Message(){
                     className="site-layout-background"
                     style={{
                         padding: 0,
-                    }}
-                />
+                    }}>
+                    {React.createElement(collapsed ? MenuUnfoldOutlined : MenuFoldOutlined, {
+                        className: 'trigger',
+                        onClick: () => setCollapsed(!collapsed),
+                    })}
+                </Header>
                 <Content
                     style={{
                         margin: '0 16px',
                     }}
                 >
-                    <Breadcrumb
-                        style={{
-                            margin: '16px 0',
-                        }}
-                    >
-                        <Breadcrumb.Item>User</Breadcrumb.Item>
-                        <Breadcrumb.Item>Bill</Breadcrumb.Item>
-                    </Breadcrumb>
+                    <div style={{margin: '16px 0',}}/>
                     <div
                         className="site-layout-background"
                         style={{
                             padding: 24,
-                            minHeight: 360,
+                            minHeight: 700,
                         }}
                     >
-                        Bill is a cat.
+                        Message in here
                     </div>
+                    <div style={{margin: '12px 0'}}/>
+                    <Input.Group compact>
+                        <Input style={{ width: 'calc(100% - 100px)' }}
+                               placeholder="请输入信息" />
+                        <Button type="primary">发送</Button>
+                    </Input.Group>
                 </Content>
                 <Footer
                     style={{
