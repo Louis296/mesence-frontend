@@ -1,42 +1,57 @@
 import React from "react";
 import Login from "./Login";
 import Message from "./Message";
-import axios from "axios";
+import Cookies from "js-cookie";
+import {GetFriendList, GetToken, GetUserInfo, InitConfig} from "./services/global";
+import {UserOutlined} from "@ant-design/icons";
 
 class Client extends React.Component{
 
     constructor(props) {
         super(props);
-
         this.state={
-            isLogin:false,
-            token:"",
+            host:"http://localhost:8081"
         }
     }
 
-    userLogin = (values)=>{
+    userLogin = async (values) => {
         console.log(values);
-        axios.post("http://localhost:8081/login",{
-            Phone:values.phone,
-            Password:values.password
-        }).then(res=>{
-            let token;
-            token=res.data.Data.Token
-            console.log(token)
-            // localStorage.setItem("userToken",token)
-            this.setState({
-                isLogin:true,
-                token:token,
-            })
-        })
+
+        const resp = await GetToken(values)
+        const token = resp.data.Data.Token
+        Cookies.set("userToken",token)
+        console.log(token)
+
+        InitConfig(token)
+
+        const info=await GetUserInfo()
+        localStorage.setItem("userInfo",JSON.stringify(info.data.Data.Info))
+
+        const friends=await GetFriendList()
+        localStorage.setItem("friends",JSON.stringify(friends.data.Data.List))
+
+        this.setState({})
+    }
+
+    getFriendsItem = ()=>{
+        const list=JSON.parse(localStorage.getItem("friends"))
+        let children = []
+        for (let i=0; i<list.length; i++){
+            let name=list[i].FriendNoteName
+            if(name===""){
+                name=list[i].Friend.Name
+            }
+            children.push({label:name,key:i})
+        }
+        return {key:'sub1',icon:<UserOutlined />,children:children,label:'Friends'}
     }
 
     render() {
         return <div>
-            {!this.state.isLogin ?
+            {!Cookies.get("userToken") ?
                 <Login loginHandler={this.userLogin}/>
                 :
-                <Message/>
+                <Message friends={this.getFriendsItem()}/>
             }
         </div>
     }
