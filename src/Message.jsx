@@ -4,7 +4,7 @@ import {
     MenuUnfoldOutlined,
     UserOutlined,
 } from '@ant-design/icons';
-import { Button, Input, Layout, Menu} from 'antd';
+import {Button, Input, Layout, Menu, Space} from 'antd';
 import React, { useState} from 'react';
 import Cookies from "js-cookie";
 
@@ -27,6 +27,10 @@ const items = [
     ]),
 ];
 
+function onMenuClick(e){
+    console.log('click',e)
+}
+
 function Message(props){
     const [collapsed, setCollapsed] = useState(false);
     return <div>
@@ -37,7 +41,7 @@ function Message(props){
         >
             <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
                 <div className="logo">Mesence</div>
-                <Menu theme="dark" defaultSelectedKeys={['1']} mode="inline" items={[props.friends]} />
+                <Menu theme="dark" defaultSelectedKeys={['1']} mode="inline" onClick={onMenuClick} items={[props.friends]} />
             </Sider>
             <Layout className="site-layout">
                 <Header
@@ -49,10 +53,14 @@ function Message(props){
                         className: 'trigger',
                         onClick: () => setCollapsed(!collapsed),
                     })}
-                    <Button danger onClick={()=>{
-                        Cookies.remove("userToken")
-                        window.location.href=`${window.location.origin}`
-                    }}>退出登录</Button>
+                    <Space>
+                        欢迎用户 {props.userInfo.Name}
+                        <Button danger onClick={()=>{
+                            Cookies.remove("userToken")
+                            localStorage.clear()
+                            window.location.href=`${window.location.origin}`
+                        }}>退出登录</Button>
+                    </Space>
                 </Header>
                 <Content
                     style={{

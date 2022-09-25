@@ -4,6 +4,7 @@ import Message from "./Message";
 import Cookies from "js-cookie";
 import {GetFriendList, GetToken, GetUserInfo, InitConfig} from "./services/global";
 import {UserOutlined} from "@ant-design/icons";
+import {message} from "antd";
 
 class Client extends React.Component{
 
@@ -18,6 +19,10 @@ class Client extends React.Component{
         console.log(values);
 
         const resp = await GetToken(values)
+        if(resp.data.Status==="Error"){
+            message.error("用户名或密码错误")
+            return
+        }
         const token = resp.data.Data.Token
         Cookies.set("userToken",token)
         console.log(token)
@@ -46,12 +51,18 @@ class Client extends React.Component{
         return {key:'sub1',icon:<UserOutlined />,children:children,label:'Friends'}
     }
 
+    getUserInfo=()=>{
+        return JSON.parse(localStorage.getItem("userInfo"))
+    }
+
+
     render() {
         return <div>
             {!Cookies.get("userToken") ?
                 <Login loginHandler={this.userLogin}/>
                 :
-                <Message friends={this.getFriendsItem()}/>
+                <Message friends={this.getFriendsItem()}
+                         userInfo={this.getUserInfo()}/>
             }
         </div>
     }
