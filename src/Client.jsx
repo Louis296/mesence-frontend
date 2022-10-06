@@ -10,8 +10,26 @@ class Client extends React.Component{
 
     constructor(props) {
         super(props);
+        this.socket=null
+        this.messageChild=React.createRef()
         this.state={
-            host:"http://localhost:8081"
+            host:"http://localhost:8081",
+            wsHost:"ws://localhost:8081/ws",
+            userInfo:null,
+            friendList:null,
+        }
+
+        if (Cookies.get("userToken")){
+            this.getFriendsItem().then((res)=>{
+                this.setState({
+                    friendList:res,
+                })
+            })
+            this.getUserInfo().then((res)=>{
+                this.setState({
+                    userInfo:res,
+                })
+            })
         }
     }
 
@@ -27,32 +45,48 @@ class Client extends React.Component{
         Cookies.set("userToken",token)
         console.log(token)
 
-        InitConfig(token)
+        this.socket=new WebSocket(this.state.wsHost+"?token="+token)
 
-        const info=await GetUserInfo()
-        localStorage.setItem("userInfo",JSON.stringify(info.data.Data.Info))
-
-        const friends=await GetFriendList()
-        localStorage.setItem("friends",JSON.stringify(friends.data.Data.List))
-
-        this.setState({})
-    }
-
-    getFriendsItem = ()=>{
-        const list=JSON.parse(localStorage.getItem("friends"))
-        let children = []
-        for (let i=0; i<list.length; i++){
-            let name=list[i].FriendNoteName
-            if(name===""){
-                name=list[i].Friend.Name
-            }
-            children.push({label:name,key:i})
+        this.socket.onopen=()=>{
+            console.log("连接websocket成功")
         }
-        return {key:'sub1',icon:<UserOutlined />,children:children,label:'Friends'}
+
+        this.socket.onmessage=(e)=>{
+            console.log("收到websocket消息",e)
+            const message=JSON.parse(e.data)
+            if (message.Type==="word"){
+                this.messageChild.current.onMessageReceive(message)
+            }
+        }
+
+        this.setState({
+            friendList:await this.getFriendsItem(),
+            userInfo:await this.getUserInfo(),
+        })
     }
 
-    getUserInfo=()=>{
-        return JSON.parse(localStorage.getItem("userInfo"))
+    getFriendsItem = async () => {
+        const resp = await GetFriendList()
+        const list=resp.data.Data.List
+        let children = []
+        for (let i = 0; i < list.length; i++) {
+            let name = list[i].FriendNoteName
+            if (name === "") {
+                name = list[i].Friend.Name
+            }
+            children.push({label: name, key: i})
+        }
+        return {key: 'sub1', icon: <UserOutlined/>, children: children, label: 'Friends'}
+    }
+
+    getUserInfo=async () => {
+        const resp=await GetUserInfo()
+        return resp.data.Data.Info
+    }
+
+    sendMessage=(msg)=>{
+        console.log("发送websocket消息",msg)
+        this.socket.send(JSON.stringify(msg))
     }
 
 
@@ -61,8 +95,10 @@ class Client extends React.Component{
             {!Cookies.get("userToken") ?
                 <Login loginHandler={this.userLogin}/>
                 :
-                <Message friends={this.getFriendsItem()}
-                         userInfo={this.getUserInfo()}/>
+                <Message friends={this.state.friendList}
+                         userInfo={this.state.userInfo}
+                         sendMessage={this.sendMessage}
+                         onRef={this.messageChild}/>
             }
         </div>
     }
