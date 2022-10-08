@@ -11,7 +11,7 @@ class Client extends React.Component{
     constructor(props) {
         super(props);
         this.socket=null
-        this.messageChild=React.createRef()
+        this.mainChild=React.createRef()
         this.state={
             host:"http://localhost:8081",
             wsHost:"ws://localhost:8081/ws",
@@ -55,7 +55,7 @@ class Client extends React.Component{
             console.log("收到websocket消息",e)
             const message=JSON.parse(e.data)
             if (message.Type==="word"){
-                this.messageChild.current.onMessageReceive(message)
+                this.mainChild.current.onMessageReceive(message)
             }
         }
 
@@ -68,15 +68,16 @@ class Client extends React.Component{
     getFriendsItem = async () => {
         const resp = await GetFriendList()
         const list=resp.data.Data.List
-        let children = []
+        let res = []
         for (let i = 0; i < list.length; i++) {
             let name = list[i].FriendNoteName
             if (name === "") {
                 name = list[i].Friend.Name
             }
-            children.push({label: name, key: i})
+            res.push({label: name, key: i, icon: <UserOutlined/>, info:list[i]})
         }
-        return {key: 'sub1', icon: <UserOutlined/>, children: children, label: 'Friends'}
+        // return {key: 'sub1', icon: <UserOutlined/>, children: res, label: 'Friends'}
+        return res
     }
 
     getUserInfo=async () => {
@@ -98,7 +99,7 @@ class Client extends React.Component{
                 <Main friends={this.state.friendList}
                       userInfo={this.state.userInfo}
                       sendMessage={this.sendMessage}
-                      onRef={this.messageChild}/>
+                      onRef={this.mainChild}/>
             }
         </div>
     }

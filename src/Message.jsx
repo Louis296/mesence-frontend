@@ -1,5 +1,5 @@
-import {Button, List} from "antd";
-import {forwardRef, useImperativeHandle, useState} from "react";
+import {Button, Input, List} from "antd";
+import React, {forwardRef, useImperativeHandle, useState} from "react";
 
 
 function Message(props){
@@ -15,12 +15,28 @@ function Message(props){
         addMsg:addMsg
     }))
     return (<div>
-        <List
-            size="large"
-            dataSource={state.data}
-            split={false}
-            renderItem={item => <List.Item>{item}</List.Item>}
-        />
+        <div style={{margin: '16px 0',}}/>
+        <div
+            className="site-layout-background"
+            style={{
+                padding: 24,
+                minHeight: 700,
+            }}
+        >
+            <List
+                size="large"
+                dataSource={state.data}
+                split={false}
+                renderItem={item => <List.Item>{item}</List.Item>}
+            />
+        </div>
+        <div style={{margin: '16px 0'}}/>
+        <Input.Group compact>
+            <Input style={{ width: 'calc(100% - 70px)' }}
+                   placeholder="请输入信息"
+                   id="message_input"/>
+            <Button type="primary" onClick={props.onSendClick}>发送</Button>
+        </Input.Group>
     </div>)
 }
 
