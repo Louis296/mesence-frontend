@@ -1,6 +1,6 @@
 import React from "react";
 import Login from "./Login";
-import Message from "./Message";
+import Main from "./Main";
 import Cookies from "js-cookie";
 import {GetFriendList, GetToken, GetUserInfo, InitConfig} from "./services/global";
 import {UserOutlined} from "@ant-design/icons";
@@ -95,10 +95,10 @@ class Client extends React.Component{
             {!Cookies.get("userToken") ?
                 <Login loginHandler={this.userLogin}/>
                 :
-                <Message friends={this.state.friendList}
-                         userInfo={this.state.userInfo}
-                         sendMessage={this.sendMessage}
-                         onRef={this.messageChild}/>
+                <Main friends={this.state.friendList}
+                      userInfo={this.state.userInfo}
+                      sendMessage={this.sendMessage}
+                      onRef={this.messageChild}/>
             }
         </div>
     }
