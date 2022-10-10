@@ -5,7 +5,6 @@ import Cookies from "js-cookie";
 const host="http://localhost:8081"
 const version="20220101"
 
-let config
 
 
 function onError(){
@@ -33,6 +32,20 @@ export async function GetFriendList(){
             }
         })
     }catch (e) {
+        console.log(e)
+        onError()
+    }
+}
+
+export async function ListMessageRecord(friendPhone){
+    try{
+        return await axios.get(host+"/v1?Action=ListMessageRecord&Version="+version
+            +"&Limit=10&Offset=1&AnotherUser="+friendPhone,{
+            headers:{
+                "Authorization":Cookies.get("userToken")
+            }
+        })
+    }catch (e){
         console.log(e)
         onError()
     }

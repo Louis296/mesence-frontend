@@ -8,14 +8,15 @@ import {Button, Empty, Input, Layout, Menu, Space} from 'antd';
 import React, {useImperativeHandle, useRef, useState} from 'react';
 import Cookies from "js-cookie";
 import Message from "./Message";
+import {ListMessageRecord} from "./services/global";
 
 const { Header, Content, Footer, Sider } = Layout;
 
 function Main(props){
-    let data = [];
-    const [collapsed, setCollapsed] = useState(false);
-    const [friend,setFriend]=useState({});
-    let messageChild=React.createRef();
+    const [messageList,setMessageList]=useState([])
+    const [collapsed, setCollapsed] = useState(false)
+    const [friend,setFriend]=useState({})
+    let messageChild=React.createRef()
 
     console.log('friend:',friend)
 
@@ -23,25 +24,38 @@ function Main(props){
         console.log('click',e)
         console.log(e.item.props.info)
         setFriend(e.item.props.info)
+        ListMessageRecord(e.item.props.info.Friend.Phone).then((res)=>{
+            const list=res.data.Data.List
+            let messages=[]
+            for (let i=0;i<list.length;i++){
+                let item=list[i]
+                if (item.From===props.userInfo.Phone){
+                    messages.unshift("<-- "+item.Content)
+                }else{
+                    messages.unshift("--> "+item.Content)
+                }
+            }
+            setMessageList(messages)
+        })
     }
 
     const onSendClick=()=>{
         const msg=document.getElementById("message_input").value
-        messageChild.current.addMsg("<--  "+msg)
+        setMessageList(messageList.concat("<-- "+msg))
+        const date=new Date()
         const message={
             Type:"word",
             Data:{
                 To:friend.Friend.Phone,
                 Content:msg,
-                SendTime:"2022-10-07T15:28:05+08:00"
+                SendTime: date.toISOString()
             }
         }
         props.sendMessage(message)
     }
 
     const onMessageReceive=(message)=>{
-        messageChild.current.addMsg("--> "+message.Data.Content)
-
+        setMessageList(messageList.concat("--> "+message.Data.Content))
     }
 
     useImperativeHandle(props.onRef,()=>({
@@ -85,7 +99,7 @@ function Main(props){
                 >
                     {Object.keys(friend).length===0 ?
                         <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />:
-                        <Message data={data} onRef={messageChild} onSendClick={onSendClick}/>
+                        <Message data={messageList} ref={messageChild} onSendClick={onSendClick}/>
                     }
                 </Content>
                 <Footer

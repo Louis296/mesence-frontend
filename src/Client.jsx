@@ -2,7 +2,7 @@ import React from "react";
 import Login from "./Login";
 import Main from "./Main";
 import Cookies from "js-cookie";
-import {GetFriendList, GetToken, GetUserInfo, InitConfig} from "./services/global";
+import {GetFriendList, GetToken, GetUserInfo} from "./services/global";
 import {UserOutlined} from "@ant-design/icons";
 import {message} from "antd";
 
@@ -30,6 +30,7 @@ class Client extends React.Component{
                     userInfo:res,
                 })
             })
+            this.connWebSocket(Cookies.get('userToken'))
         }
     }
 
@@ -43,7 +44,16 @@ class Client extends React.Component{
         }
         const token = resp.data.Data.Token
         Cookies.set("userToken",token)
-        console.log(token)
+
+        this.connWebSocket(token)
+
+        this.setState({
+            friendList:await this.getFriendsItem(),
+            userInfo:await this.getUserInfo(),
+        })
+    }
+
+    connWebSocket=(token)=>{
 
         this.socket=new WebSocket(this.state.wsHost+"?token="+token)
 
@@ -58,11 +68,6 @@ class Client extends React.Component{
                 this.mainChild.current.onMessageReceive(message)
             }
         }
-
-        this.setState({
-            friendList:await this.getFriendsItem(),
-            userInfo:await this.getUserInfo(),
-        })
     }
 
     getFriendsItem = async () => {
