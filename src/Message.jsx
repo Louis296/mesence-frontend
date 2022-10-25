@@ -8,11 +8,6 @@ class Message extends React.Component{
         super(props);
     }
 
-    // shouldComponentUpdate(nextProps, nextState, nextContext) {
-    //     console.log(nextProps)
-    //     return true
-    // }
-
     render() {
         return (<div>
             <div style={{margin: '16px 0',}}/>
@@ -37,6 +32,10 @@ class Message extends React.Component{
                        id="message_input"/>
                 <Button type="primary" onClick={this.props.onSendClick}>发送</Button>
             </Input.Group>
+            <div style={{margin: '16px 0'}}/>
+            <Button type="primary" onClick={()=>{
+                this.props.onStartVideoCall('video')
+            }}>视频通话</Button>
         </div>)
     }
 }

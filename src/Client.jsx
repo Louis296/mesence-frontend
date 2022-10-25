@@ -5,18 +5,27 @@ import Cookies from "js-cookie";
 import {GetFriendList, GetToken, GetUserInfo} from "./services/global";
 import {UserOutlined} from "@ant-design/icons";
 import {message} from "antd";
+import P2PVideoCall from "./P2PVideoCall";
+import RemoteVideoView from "./RemoteVideoView";
+import LocalVideoView from "./LocalVideoView";
 
 class Client extends React.Component{
 
     constructor(props) {
         super(props);
+        this.p2pVideoCall=null
         this.socket=null
         this.mainChild=React.createRef()
         this.state={
             host:"http://localhost:8081",
             wsHost:"ws://localhost:8081/ws",
+            turnUrl:"http://localhost:9000/api/turn?service=turn&username=sample",
             userInfo:null,
             friendList:null,
+
+            isVideoCall:false,
+            localStream:null,
+            remoteStream:null,
         }
 
         if (Cookies.get("userToken")){
@@ -31,7 +40,22 @@ class Client extends React.Component{
                 })
             })
             this.connWebSocket(Cookies.get('userToken'))
+            this.p2pVideoCall=new P2PVideoCall(this.socket,this.state.turnUrl)
+            this.p2pVideoCall.on('newCall',()=>{
+                this.setState({isVideoCall:true})
+            })
+            this.p2pVideoCall.on('localstream',(stream)=>{
+                this.setState({localStream:stream})
+            })
+            this.p2pVideoCall.on('addstream',(stream)=>{
+                this.setState({remoteStream:stream})
+            })
+
         }
+    }
+
+    handleStartVideoCall=(remoteUserPhone,mediaType)=>{
+        this.p2pVideoCall.startCall(remoteUserPhone,mediaType)
     }
 
     userLogin = async (values) => {
@@ -51,6 +75,17 @@ class Client extends React.Component{
             friendList:await this.getFriendsItem(),
             userInfo:await this.getUserInfo(),
         })
+
+        this.p2pVideoCall=new P2PVideoCall(this.socket,this.state.turnUrl)
+        this.p2pVideoCall.on('newCall',()=>{
+            this.setState({isVideoCall:true})
+        })
+        this.p2pVideoCall.on('localstream',(stream)=>{
+            this.setState({localStream:stream})
+        })
+        this.p2pVideoCall.on('addstream',(stream)=>{
+            this.setState({remoteStream:stream})
+        })
     }
 
     connWebSocket=(token)=>{
@@ -64,8 +99,24 @@ class Client extends React.Component{
         this.socket.onmessage=(e)=>{
             console.log("收到websocket消息",e)
             const message=JSON.parse(e.data)
-            if (message.Type==="word"){
-                this.mainChild.current.onMessageReceive(message)
+            switch (message.Type){
+                case "word":
+                    this.mainChild.current.onMessageReceive(message)
+                    break
+                case "offer":
+                    this.p2pVideoCall.onOffer(message)
+                    break
+                case "answer":
+                    this.p2pVideoCall.onAnswer(message)
+                    break
+                case "candidate":
+                    this.p2pVideoCall.onCandidate(message)
+                    break
+                case 'heartPackage':
+                    console.log('收到心跳包')
+                    break
+                default:
+                    console.log('收到未知消息',message)
             }
         }
     }
@@ -101,10 +152,23 @@ class Client extends React.Component{
             {!Cookies.get("userToken") ?
                 <Login loginHandler={this.userLogin}/>
                 :
+                this.state.isVideoCall?
+                    <div>
+                        {
+                            this.state.remoteStream!=null?<RemoteVideoView stream={this.state.remoteStream} id={'remoteView'} />:null
+                        }
+                        {
+                            this.state.localStream!=null?<LocalVideoView stream={this.state.localStream} id={'localView'}/>:null
+                        }
+                    </div>:
                 <Main friends={this.state.friendList}
                       userInfo={this.state.userInfo}
                       sendMessage={this.sendMessage}
-                      onRef={this.mainChild}/>
+                      onRef={this.mainChild}
+                      onStartVideoCall={this.handleStartVideoCall}
+                      isVideoCall={this.state.isVideoCall}
+                      localStream={this.state.localStream}
+                      remoteStream={this.state.remoteStream}/>
             }
         </div>
     }

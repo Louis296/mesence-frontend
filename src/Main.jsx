@@ -9,6 +9,8 @@ import React, {useImperativeHandle, useRef, useState} from 'react';
 import Cookies from "js-cookie";
 import Message from "./Message";
 import {ListMessageRecord} from "./services/global";
+import LocalVideoView from "./LocalVideoView";
+import RemoteVideoView from "./RemoteVideoView";
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -99,7 +101,13 @@ function Main(props){
                 >
                     {Object.keys(friend).length===0 ?
                         <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />:
-                        <Message data={messageList} ref={messageChild} onSendClick={onSendClick}/>
+                        <Message data={messageList}
+                                 ref={messageChild}
+                                 onSendClick={onSendClick}
+                                 onStartVideoCall={(mediaType)=>{
+                                     props.onStartVideoCall(friend.Friend.Phone,mediaType)
+                                 }}
+                        />
                     }
                 </Content>
                 <Footer
