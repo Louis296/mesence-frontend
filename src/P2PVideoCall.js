@@ -27,9 +27,9 @@ export default class P2PVideoCall extends events.EventEmitter{
                 let _turnCredential = res.data;
                 configuration = { "iceServers": [
                         {
-                            "url":  _turnCredential['uris'][0],
-                            'username': _turnCredential['username'],
-                            'credential': _turnCredential['password']
+                            "url":  _turnCredential['Uris'][0],
+                            'username': _turnCredential['UserName'],
+                            'credential': _turnCredential['Password']
                         }
                     ]};
                 console.log("configuration:" + JSON.stringify(configuration));
